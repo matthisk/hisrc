@@ -6,7 +6,7 @@
  *
  */
 
-(function($){
+var init = function($){
 	$.hisrc = {
 		bandwidth: null,
 		connectionTestResult: null,
@@ -17,6 +17,8 @@
 
 	$.hisrc.defaults = {
 		useTransparentGif: false,
+		useBackgroundImage : false,
+		extendedCSS: true,
 		transparentGifSrc: 'data:image/gif;base64,R0lGODlhAQABAIAAAMz/AAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
 		minKbpsForHighBandwidth: 300,
 		speedTestUri: '50K.jpg',
@@ -207,11 +209,18 @@
 
 			setImageSource = function ( $el, src ) {
 				if ( settings.useTransparentGif ) {
-					$el.attr('src', settings.transparentGifSrc)
-						.css('max-height', '100%')
-						.css('max-width', '100%')
-						.css('background', 'url("' + src + '") no-repeat 0 0')
-						.css('background-size', 'contain');
+					if( ! settings.useBackgroundImage ) {
+						$el.attr('src', settings.transparentGifSrc)
+					}
+					
+					if( settings.extendedCSS ) {
+						$el.css('max-height', '100%')
+							.css('max-width', '100%')
+							.css('background', 'url("' + src + '") no-repeat 0 0')
+							.css('background-size', 'contain');
+					} else {
+						$el.css('background-image', 'url(' + src + ')');
+					}
 				} else {
 					$el.attr( 'src', src );
 				}
@@ -222,7 +231,12 @@
 		$els.each(function(){
 			var $el = $(this);
 
-			var src = $el.attr('src');
+			if( settings.useBackgroundImage ) {
+				var src = $el.css('background-image');
+			} else {
+				var src = $el.attr('src');
+			}
+			
 
 			if (src) {
 				if (!$el.data('m1src')) {
@@ -240,7 +254,6 @@
 				$el.on('speedTestComplete.hisrc', function(){
 
 					if (speedConnectionStatus === STATUS_COMPLETE) {
-
 						if (isSlowConnection) {
 							$el.attr( 'src', $el.data('m1src') );
 						} else {
@@ -277,5 +290,10 @@
 		return $els;
 	};
 
-})(jQuery);
+};
 
+if( typeof window.define === 'function' && window.define.amd ) {
+	define( [ 'jquery' ], init );
+} else {
+	init( window.jQuery );
+}
